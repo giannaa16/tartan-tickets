@@ -1,17 +1,19 @@
+/* Named color tokens (UX spec): ink, accent, surface. Palette: red, black, gray. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #111111;          /* black: main text */
+  --ink-muted: #555555;    /* gray: secondary text (7.4:1 on white) */
+  --accent: #c41230;       /* CMU red: buttons, highlights (5.9:1 on white) */
+  --accent-strong: #9e0e27;
+  --surface: #ffffff;
+  --surface-muted: #f2f2f2; /* light gray page background */
+  --border: #d4d4d4;
+  --focus: #111111;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 html,
@@ -21,29 +23,14 @@ body {
 }
 
 body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  color: var(--ink);
+  background: var(--surface-muted);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }

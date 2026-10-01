@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tartan Tickets
 
-## Getting Started
+Club event ticketing for CMU students. Built from Starter Spec A (`../In Class Spec 10:1`).
 
-First, run the development server:
+## Status
+
+- **Done:** Story 1, Browse events. Lists events starting in the next 7 days with date,
+  location, price, and seats remaining. Sold-out events show "Sold out" and "Join waitlist".
+- **Placeholders:** the Buy and Join waitlist buttons show "Coming soon".
+- **Temporary shortcuts:** no database (sample events live in server memory and reset on
+  restart), no sign-in, no real payments.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install     # first time only
+npm run dev     # then open http://localhost:3000
+npm test        # run the automated tests
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Where things are
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `lib/events.ts`: sample events and the "upcoming" rules
+- `app/api/events/route.ts`: `GET /api/events`
+- `app/EventList.tsx`: the event list page (loading, empty, error, sold-out states)
+- `app/globals.css`: named color tokens (ink, accent, surface)
+- `tests/`: automated tests, named after the story they check (e.g. `story1_...`)
