@@ -28,12 +28,33 @@ const DAY = 24 * HOUR;
 // "Upcoming" means starting within the next 7 days.
 export const UPCOMING_WINDOW_MS = 7 * DAY;
 
-// Sample dates are relative to midnight on the day the server starts, so the demo
-// always has upcoming events at sensible times of day.
+// Midnight in Pittsburgh on the day of `now`, as a timestamp. Uses Pittsburgh time
+// rather than the server's clock, because hosts like Vercel run on UTC.
+export function pittsburghMidnight(now: Date): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hourCycle: "h23",
+    })
+      .formatToParts(now)
+      .map((p) => [p.type, Number(p.value)]),
+  );
+  const wallClockAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  const offsetMs = wallClockAsUtc - Math.floor(now.getTime() / 1000) * 1000;
+  return Date.UTC(parts.year, parts.month - 1, parts.day) - offsetMs;
+}
+
+// Sample dates are relative to midnight (Pittsburgh time) on the day the server
+// starts, so the demo always has upcoming events at sensible times of day.
 function seedEvents(now: Date): TicketEvent[] {
-  const midnight = new Date(now);
-  midnight.setHours(0, 0, 0, 0);
-  const at = (offsetMs: number) => new Date(midnight.getTime() + offsetMs).toISOString();
+  const midnight = pittsburghMidnight(now);
+  const at = (offsetMs: number) => new Date(midnight + offsetMs).toISOString();
   return [
     {
       eventId: "evt-fall-show",

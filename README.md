@@ -1,11 +1,13 @@
 # Tartan Tickets
 
-Club event ticketing for CMU students. Built from Starter Spec A (`../In Class Spec 10:1`).
+Club event ticketing for CMU students. Built from Starter Spec A (`../Tartan Tickets/docs`).
+When the spec documents conflict, the stricter rule wins.
 
 ## Status
 
 - **Done:** Story 1, Browse events. Lists events starting in the next 7 days with date,
-  location, price, and seats remaining. Sold-out events show "Sold out" and "Join waitlist".
+  location, price, and seats remaining, in Pittsburgh time. Sold-out events show "Sold out",
+  a disabled Buy button, and "Join waitlist". Every page sends an HSTS header (SEC-3).
 - **Placeholders:** the Buy and Join waitlist buttons show "Coming soon".
 - **Temporary shortcuts:** no database (sample events live in server memory and reset on
   restart), no sign-in, no real payments.

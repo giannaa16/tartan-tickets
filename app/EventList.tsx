@@ -122,6 +122,9 @@ function EventCard({ event }: { event: PublicEvent }) {
         {event.soldOut ? (
           <>
             <span className={styles.soldOutBadge}>Sold out</span>
+            <button type="button" className={styles.primaryButton} disabled>
+              Buy
+            </button>
             <button
               type="button"
               className={styles.secondaryButton}

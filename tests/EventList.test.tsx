@@ -49,13 +49,14 @@ describe("Story 1: browse events page", () => {
     expect(await screen.findByText("Free")).toBeInTheDocument();
   });
 
-  it("story1_sold_out_shows_join_waitlist_instead_of_buy", async () => {
+  // Also covers REQ-4.5 (test_sold_out_disables_buy) from the test spec.
+  it("story1_sold_out_disables_buy_and_shows_join_waitlist", async () => {
     mockFetch(ok([makeEvent({ seatsRemaining: 0, soldOut: true })]));
     render(<EventList />);
 
     const card = await screen.findByRole("article");
-    expect(within(card).queryByRole("button", { name: "Buy" })).not.toBeInTheDocument();
-    expect(within(card).getByRole("button", { name: "Join waitlist" })).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "Buy" })).toBeDisabled();
+    expect(within(card).getByRole("button", { name: "Join waitlist" })).toBeEnabled();
     expect(within(card).getAllByText("Sold out").length).toBeGreaterThan(0);
   });
 

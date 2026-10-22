@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { GET } from "@/app/api/events/route";
+import nextConfig from "@/next.config";
+
+describe("SEC-3: HTTPS only", () => {
+  it("sec3_hsts_header_on_every_route", async () => {
+    const rules = await nextConfig.headers!();
+    const all = rules.find((r) => r.source === "/:path*");
+    const hsts = all?.headers.find((h) => h.key === "Strict-Transport-Security");
+    expect(hsts?.value).toMatch(/max-age=\d{8,}/);
+  });
+});
 
 describe("Story 1: GET /api/events", () => {
   it("story1_api_returns_200_with_upcoming_events", async () => {

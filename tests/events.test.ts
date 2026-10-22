@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPrice, getUpcomingEvents, type TicketEvent } from "@/lib/events";
+import { formatPrice, getUpcomingEvents, pittsburghMidnight, type TicketEvent } from "@/lib/events";
 
 const NOW = new Date("2026-10-01T12:00:00Z");
 const DAY = 24 * 60 * 60 * 1000;
@@ -65,6 +65,17 @@ describe("Story 1: upcoming events list", () => {
     const [event] = getUpcomingEvents([makeEvent({})], NOW);
     expect(event).not.toHaveProperty("seatsSold");
     expect(event).not.toHaveProperty("status");
+  });
+
+  it("story1_sample_times_use_pittsburgh_midnight", () => {
+    // 10 PM Oct 21 in Pittsburgh is already Oct 22 in UTC; midnight must still be Oct 21 local.
+    expect(new Date(pittsburghMidnight(new Date("2026-10-22T02:00:00Z"))).toISOString()).toBe(
+      "2026-10-21T04:00:00.000Z",
+    );
+    // Winter (EST, UTC-5).
+    expect(new Date(pittsburghMidnight(new Date("2026-12-15T17:30:00Z"))).toISOString()).toBe(
+      "2026-12-15T05:00:00.000Z",
+    );
   });
 
   it("story1_formats_price", () => {
