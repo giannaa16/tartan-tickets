@@ -1,7 +1,8 @@
 # Tartan Tickets
 
-Club event ticketing for CMU students. Built from Starter Spec A (`../Tartan Tickets/docs`).
-When the spec documents conflict, the stricter rule wins.
+Club event ticketing for CMU students. Built from Starter Spec A, in [`docs/`](docs/):
+[requirements](docs/requirements.md), [security spec](docs/SECURITY_SPEC.md), and
+[test spec](docs/TEST_SPEC.md). When the spec documents conflict, the stricter rule wins.
 
 ## Status
 
@@ -22,6 +23,7 @@ npm test        # run the automated tests
 
 ## Where things are
 
+- `docs/`: the spec (requirements, security spec, test spec)
 - `lib/events.ts`: sample events and the "upcoming" rules
 - `app/api/events/route.ts`: `GET /api/events`
 - `app/EventList.tsx`: the event list page (loading, empty, error, sold-out states)
