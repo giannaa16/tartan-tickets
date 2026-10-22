@@ -199,3 +199,9 @@ export function formatPrice(priceCents: number): string {
   if (priceCents === 0) return "Free";
   return `$${(priceCents / 100).toFixed(2)}`;
 }
+
+// For testing only: re-seed the store (or replace it with custom events).
+export function _resetEventStore(customEvents?: TicketEvent[]): void {
+  store.length = 0;
+  store.push(...(customEvents ?? seedEvents(new Date())));
+}

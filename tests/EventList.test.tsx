@@ -4,6 +4,9 @@ import userEvent from "@testing-library/user-event";
 import EventList from "@/app/EventList";
 import type { PublicEvent } from "@/lib/events";
 
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mockPush }) }));
+
 function makeEvent(overrides: Partial<PublicEvent>): PublicEvent {
   return {
     eventId: "evt-1",
@@ -27,7 +30,10 @@ function mockFetch(response: Promise<Response>) {
 const ok = (events: PublicEvent[]) =>
   Promise.resolve(new Response(JSON.stringify({ events }), { status: 200 }));
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  mockPush.mockClear();
+});
 
 describe("Story 1: browse events page", () => {
   it("story1_shows_date_location_price_and_seats_remaining", async () => {
@@ -60,14 +66,14 @@ describe("Story 1: browse events page", () => {
     expect(within(card).getAllByText("Sold out").length).toBeGreaterThan(0);
   });
 
-  it("story1_buy_shows_coming_soon_and_disables_after_one_click", async () => {
-    mockFetch(ok([makeEvent({})]));
+  it("story3_buy_button_navigates_to_checkout", async () => {
+    mockFetch(ok([makeEvent({ eventId: "evt-test-1" })]));
     render(<EventList />);
 
     const buy = await screen.findByRole("button", { name: "Buy" });
+    expect(buy).toBeEnabled();
     await userEvent.click(buy);
-    expect(screen.getByText(/Coming soon/)).toBeInTheDocument();
-    expect(buy).toBeDisabled();
+    expect(mockPush).toHaveBeenCalledWith("/checkout?eventId=evt-test-1");
   });
 
   it("story1_waitlist_shows_coming_soon", async () => {

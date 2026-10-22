@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatPrice, type PublicEvent } from "@/lib/events";
 import styles from "./page.module.css";
 
@@ -82,6 +83,7 @@ export default function EventList() {
 }
 
 function EventCard({ event }: { event: PublicEvent }) {
+  const router = useRouter();
   const [notice, setNotice] = useState<string | null>(null);
   const lowStock = !event.soldOut && event.seatsRemaining <= 10;
 
@@ -138,8 +140,7 @@ function EventCard({ event }: { event: PublicEvent }) {
           <button
             type="button"
             className={styles.primaryButton}
-            disabled={notice !== null}
-            onClick={() => setNotice("Coming soon: ticket checkout.")}
+            onClick={() => router.push(`/checkout?eventId=${event.eventId}`)}
           >
             Buy
           </button>
