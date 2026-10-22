@@ -5,7 +5,7 @@ import { POST as declinePOST } from "@/app/api/checkout/[holdId]/decline/route";
 import { GET as orderGET } from "@/app/api/orders/[id]/route";
 import { GET as eventsGET } from "@/app/api/events/route";
 import { _resetEventStore, getAllEvents } from "@/lib/events";
-import { _resetOrderStore, expireHoldForTest } from "@/lib/orders";
+import { _resetOrderStore, expireHoldForTest, _advanceRateLimitTimeForTest } from "@/lib/orders";
 
 function postReq(body: unknown): Request {
   return new Request("http://localhost", {
@@ -204,5 +204,56 @@ describe("Story 3: Buy tickets", () => {
       postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "A".repeat(100) }),
     );
     expect(res.status).toBe(201);
+  });
+
+  // ── SEC-16: checkout rate limiting ──────────────────────────────────────────
+
+  it("blocks checkout after five attempts for the same name and event within ten minutes", async () => {
+    for (let i = 0; i < 5; i++) {
+      const res = await checkoutPOST(
+        postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "Alex Smith" }),
+      );
+      expect(res.status).toBe(201);
+    }
+    const blocked = await checkoutPOST(
+      postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "Alex Smith" }),
+    );
+    expect(blocked.status).toBe(429);
+  });
+
+  it("checkout rate limit is per event and does not affect a different event", async () => {
+    for (let i = 0; i < 5; i++) {
+      await checkoutPOST(
+        postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "Alex Smith" }),
+      );
+    }
+    const blockedSameEvent = await checkoutPOST(
+      postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "Alex Smith" }),
+    );
+    expect(blockedSameEvent.status).toBe(429);
+
+    const allowedDifferentEvent = await checkoutPOST(
+      postReq({ eventId: "evt-a-cappella", seats: 1, name: "Alex Smith" }),
+    );
+    expect(allowedDifferentEvent.status).toBe(201);
+  });
+
+  it("checkout block lifts after thirty minutes have passed", async () => {
+    for (let i = 0; i < 5; i++) {
+      await checkoutPOST(
+        postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "Alex Smith" }),
+      );
+    }
+    const blocked = await checkoutPOST(
+      postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "Alex Smith" }),
+    );
+    expect(blocked.status).toBe(429);
+
+    _advanceRateLimitTimeForTest(30 * 60 * 1000 + 1);
+
+    const allowed = await checkoutPOST(
+      postReq({ eventId: "evt-hackathon-kickoff", seats: 1, name: "Alex Smith" }),
+    );
+    expect(allowed.status).toBe(201);
   });
 });

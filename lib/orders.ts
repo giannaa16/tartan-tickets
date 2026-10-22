@@ -26,6 +26,44 @@ export type Order = {
 export const MAX_SEATS = 4;
 export const HOLD_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
+// SEC-16: block an account (keyed by trimmed name + eventId) that starts more
+// than 5 checkouts for one event within 10 minutes, for 30 minutes.
+const RATE_WINDOW_MS = 10 * 60 * 1000;
+const RATE_MAX = 5;
+const RATE_BLOCK_MS = 30 * 60 * 1000;
+
+type RateLimitEntry = { attempts: number[]; blockedUntil?: number };
+const checkoutRateLimit = new Map<string, RateLimitEntry>();
+
+// Offset used by tests to simulate time passing without real sleeps.
+let _rateLimitTimeOffsetMs = 0;
+function rateNow(): number {
+  return Date.now() + _rateLimitTimeOffsetMs;
+}
+
+function checkRateLimit(name: string, eventId: string): void {
+  const key = `${name}\0${eventId}`;
+  const now = rateNow();
+  const entry: RateLimitEntry = checkoutRateLimit.get(key) ?? { attempts: [] };
+
+  if (entry.blockedUntil !== undefined && entry.blockedUntil > now) {
+    const mins = Math.ceil((entry.blockedUntil - now) / 60_000);
+    throw { code: 429, message: `Too many checkouts for this event. Try again in ${mins} minute${mins === 1 ? "" : "s"}.` };
+  }
+
+  // Slide the window: drop attempts older than 10 minutes.
+  entry.attempts = entry.attempts.filter((t) => t > now - RATE_WINDOW_MS);
+
+  if (entry.attempts.length >= RATE_MAX) {
+    entry.blockedUntil = now + RATE_BLOCK_MS;
+    checkoutRateLimit.set(key, entry);
+    throw { code: 429, message: "Too many checkouts for this event. Try again in 30 minutes." };
+  }
+
+  entry.attempts.push(now);
+  checkoutRateLimit.set(key, entry);
+}
+
 const holds = new Map<string, Hold>();
 const orders = new Map<string, Order>();
 
@@ -57,6 +95,8 @@ export function createHold(eventId: string, seats: number, name: string): Hold {
   const trimmed = name.trim();
   if (!trimmed) throw { code: 400, message: "Name is required." };
   if (trimmed.length > 100) throw { code: 400, message: "Name must be 100 characters or fewer." };
+
+  checkRateLimit(trimmed, eventId);
 
   const event = getAllEvents().find((e) => e.eventId === eventId);
   if (!event || event.status !== "published") {
@@ -141,6 +181,13 @@ export function getOrder(orderId: string): Order | undefined {
 export function _resetOrderStore(): void {
   holds.clear();
   orders.clear();
+  checkoutRateLimit.clear();
+  _rateLimitTimeOffsetMs = 0;
+}
+
+// Advance the rate-limiter's view of the clock without real sleeps.
+export function _advanceRateLimitTimeForTest(ms: number): void {
+  _rateLimitTimeOffsetMs += ms;
 }
 
 // Force-expire a specific hold without waiting for the real 10-minute clock.
